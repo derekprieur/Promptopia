@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
-import Form from '@components/form'
+import Form from '@components/Form'
 
 const CreatePrompt = () => {
     const { data: session } = useSession()
