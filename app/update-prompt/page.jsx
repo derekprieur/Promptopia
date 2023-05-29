@@ -1,46 +1,66 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import Form from '@components/Form'
+import Form from "@components/Form";
 
 const UpdatePrompt = () => {
-    const { data: session } = useSession()
-    const router = useRouter()
-    const [submitting, setSubmitting] = useState(false)
-    const [post, setPost] = useState({
-        prompt: '',
-        tag: '',
-    })
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const promptId = searchParams.get("id");
 
-    const createPrompt = async (e) => {
+    const [post, setPost] = useState({ prompt: "", tag: "", });
+    const [submitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const getPromptDetails = async () => {
+            const response = await fetch(`/api/prompt/${promptId}`);
+            const data = await response.json();
+
+            setPost({
+                prompt: data.prompt,
+                tag: data.tag,
+            });
+        };
+
+        if (promptId) getPromptDetails();
+    }, [promptId]);
+
+    const updatePrompt = async (e) => {
         e.preventDefault();
-        setSubmitting(true);
+        setIsSubmitting(true);
+
+        if (!promptId) return alert("Missing PromptId!");
 
         try {
-            const response = await fetch('/api/prompt/new', {
-                method: 'POST',
+            const response = await fetch(`/api/prompt/${promptId}`, {
+                method: "PATCH",
                 body: JSON.stringify({
                     prompt: post.prompt,
-                    userId: session?.user.id,
                     tag: post.tag,
                 }),
-            })
+            });
+
             if (response.ok) {
-                router.push('/')
+                router.push("/");
             }
         } catch (error) {
-            console.error(error)
+            console.log(error);
         } finally {
-            setSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
     return (
-        <Form type='Create' post={post} setPost={setPost} submitting={submitting} handleSubmit={createPrompt} />
-    )
-}
+        <Form
+            type='Edit'
+            post={post}
+            setPost={setPost}
+            submitting={submitting}
+            handleSubmit={updatePrompt}
+        />
+    );
+};
 
-export default UpdatePrompt
+export default UpdatePrompt;
